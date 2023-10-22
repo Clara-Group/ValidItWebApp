@@ -18,8 +18,14 @@ import cloudinary.uploader
 import time    
 import pytz
 import datetime
-from config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, QUESTION_TIME, TOTAL_QUESTIONS
+from config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, QUESTION_TIME, TOTAL_QUESTIONS, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN
 tz = pytz.timezone('Israel')
+
+from twilio.rest import Client
+
+client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+token = client.tokens.create()
 
 from questions import QuestionsSource
 
@@ -60,10 +66,12 @@ def in_recorder_factory() -> MediaRecorder:
 ctx = webrtc_streamer(key="recorder", 
                     #   video_frame_callback=video_frame_callback, 
                       in_recorder_factory=in_recorder_factory, 
+                      rtc_configuration={ "iceServers": token.ice_servers },
                       media_stream_constraints={
                         "video": True,
                         "audio": False,
                         })
+                        
 
 if in_file.exists():
     if st.session_state.questions_count < TOTAL_QUESTIONS:
